@@ -171,10 +171,12 @@
     background:rgba(28,28,30,.45);
     z-index:200;
     opacity:0;
+    pointer-events:none;
     transition:opacity .3s ease;
   }
   .mobile-menu-backdrop.is-open{
     opacity:1;
+    pointer-events:auto;
   }
   @media (max-width: 760px){
     .nav{ padding:14px 20px; }
@@ -185,7 +187,7 @@
     .mobile-menu-backdrop{display:block;}
   }
 
-  section{padding:120px 0 100px; position:relative;}
+  section{padding:120px 0 100px; position:relative; scroll-margin-top:80px;}
   .mile{
     font-family:var(--font-mono);
     font-size:.78rem;
