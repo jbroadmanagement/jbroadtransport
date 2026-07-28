@@ -65,7 +65,10 @@
     background-position:0 var(--rail-offset, 0px);
     opacity:.9;
   }
-  @media (max-width: 860px){ .lane-rail{display:none;} }
+  @media (max-width: 600px){
+    .lane-rail{ width:26px; }
+    .lane-rail::before{ width:3px; }
+  }
 
   header{
     position:fixed; top:0; left:0; right:0;
