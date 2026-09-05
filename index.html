@@ -388,6 +388,9 @@
     border-radius:8px;
     overflow:hidden;
     background:var(--ink);
+    touch-action:pan-y;
+    cursor:grab;
+    user-select:none;
   }
   .gallery-slide{
     position:absolute; inset:0;
@@ -406,6 +409,7 @@
     width:8px; height:8px; border-radius:50%;
     background:rgba(255,255,255,.45);
     transition:background .3s ease, transform .3s ease;
+    cursor:pointer;
   }
   .gallery-dot.is-active{ background:var(--gold); transform:scale(1.25); }
   @media (max-width:600px){
@@ -956,19 +960,75 @@
   }, { threshold: 0.15 });
   revealEls.forEach(el => io.observe(el));
 
-  // Gallery carousel — auto-rotate with fade
+  // Gallery carousel — auto-rotate with fade, plus swipe/tap navigation
   const galleryCarousel = document.getElementById('galleryCarousel');
   if(galleryCarousel){
     const slides = galleryCarousel.querySelectorAll('.gallery-slide');
     const dots = galleryCarousel.querySelectorAll('.gallery-dot');
     let current = 0;
-    setInterval(() => {
+    let autoTimer = null;
+
+    function goTo(index){
       slides[current].classList.remove('is-active');
       dots[current].classList.remove('is-active');
-      current = (current + 1) % slides.length;
+      current = (index + slides.length) % slides.length;
       slides[current].classList.add('is-active');
       dots[current].classList.add('is-active');
-    }, 4200);
+    }
+
+    function startAuto(){
+      if(autoTimer) clearInterval(autoTimer);
+      autoTimer = setInterval(() => goTo(current + 1), 4200);
+    }
+
+    function restartAuto(){
+      startAuto();
+    }
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        goTo(i);
+        restartAuto();
+      });
+    });
+
+    let touchStartX = 0;
+    let touchDeltaX = 0;
+    galleryCarousel.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchDeltaX = 0;
+    }, { passive: true });
+    galleryCarousel.addEventListener('touchmove', (e) => {
+      touchDeltaX = e.touches[0].clientX - touchStartX;
+    }, { passive: true });
+    galleryCarousel.addEventListener('touchend', () => {
+      const threshold = 40;
+      if(touchDeltaX > threshold){
+        goTo(current - 1);
+        restartAuto();
+      } else if(touchDeltaX < -threshold){
+        goTo(current + 1);
+        restartAuto();
+      }
+    });
+
+    let mouseDownX = null;
+    galleryCarousel.addEventListener('mousedown', (e) => { mouseDownX = e.clientX; });
+    galleryCarousel.addEventListener('mouseup', (e) => {
+      if(mouseDownX === null) return;
+      const delta = e.clientX - mouseDownX;
+      mouseDownX = null;
+      const threshold = 40;
+      if(delta > threshold){
+        goTo(current - 1);
+        restartAuto();
+      } else if(delta < -threshold){
+        goTo(current + 1);
+        restartAuto();
+      }
+    });
+
+    startAuto();
   }
 
   const navToggle = document.getElementById('navToggle');
